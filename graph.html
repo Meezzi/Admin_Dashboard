@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chart.js Example</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        canvas {
+            -moz-user-select: none;
+            -webkit-user-select: none;
+            -ms-user-select: none;
+        }
+    </style>
+</head>
+<body>
+    <div style="width: 500px; margin: auto;">
+        <canvas id="myChart"></canvas>
+    </div>
+
+    <script>
+        // 그래프를 그리는 함수
+		//var chart;
+        function drawChart() {
+            // 데이터를 가져올 URL
+            var url = 'get_data.php';
+
+            // AJAX를 이용하여 데이터 가져오기
+            var request = new XMLHttpRequest();
+            request.open('GET', url, true);
+
+            request.onload = function() {
+                if (request.status >= 200 && request.status < 400) {
+                    // JSON 데이터 파싱
+                    var data = JSON.parse(request.responseText);
+
+                    // Chart.js를 이용하여 그래프 그리기
+                    var ctx = document.getElementById('myChart').getContext('2d');
+                    var chart = new Chart(ctx, {
+                        type: 'doughnut',
+                        data: {
+                            datasets: [{
+                                data: [0, 0],
+                                backgroundColor: [
+                                    'rgb(255, 99, 132)',
+                                    'rgb(54, 162, 235)'
+                                ]
+                            }],
+                            labels: [
+                                
+                                '복제 의심 탐지',
+								'정상 사용'
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            
+							onClick: function(evt){
+								
+								var activePoints=chart.getElementsAtEventForMode(evt, 'nearest', {intersect:true}, true);
+								
+								if(activePoints.length>0){
+									//alert(activePoints);
+									var clickedIndex = activePoints[0].index;//클릭한 영역의 라벨을 가져와야 함
+									var label = chart.data.labels[clickedIndex];
+									if (label == '복제 의심 탐지'){
+										value = 1;
+										}
+									else{
+										value=0;
+									}
+									//var value = chart.data.datasets[0].data[clickedIndex];//클릭한 인텍스의 전체 크기를 가져오는 기능
+									window.open('table.php?value=' + value);
+								}
+								else{
+									alert('failed');
+								}
+								
+								
+
+                        }
+						
+						}
+                    });
+
+                    // 데이터를 그래프에 추가
+                    for (var i = 0; i < data.length; i++) {
+					
+                        if (data[i].Cheack_Status == '0') {
+                            chart.data.datasets[0].data[1] += 1;
+							
+                        } else {
+                            chart.data.datasets[0].data[0] += 1;
+                        }
+                    }
+
+                    // 그래프 업데이트
+                    chart.update();
+					
+                }
+            };
+
+            request.send();
+        }
+
+        // 페이지 로드시 그래프 그리기
+        drawChart();
+/*
+		document.getElementById("mychart").onclick = function(evt){
+		var actionPoints = mychart.getElementAtEvent(evt);
+		
+			if(actionPoints.length>0){
+				alert(actionPoints[0]["_index"]);
+			}
+		}
+	*/	
+		// 60초마다 그래프 새로고침
+        setTimeout(function() {
+            //drawChart();
+			location.reload();
+        }, 60000);
+    </script>
+</body>
+</html>
