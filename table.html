@@ -353,11 +353,15 @@
 
 
 							// 매개변수에서 데이터셋 정보 추출
-							$value = $_GET["value"];
+							$time = $_GET["time"];
 							//$value = '0';
 
 							// db에서 해당 데이터셋 정보 검색
-							$sql = "SELECT * FROM mytable WHERE Check_Status='$value'";
+
+							
+							//$sql = "SELECT * FROM mytable WHERE Check_Status='$value' order by Time_Stamp DESC";
+							$sql = "SELECT * FROM mytable WHERE Check_Status = '1' and Time_Stamp BETWEEN DATE_SUB('$time', INTERVAL 1 MINUTE) AND '$time'order by Time_Stamp DESC";
+							
 							$result = $conn->query($sql);
 
 							// 검색 결과를 표로 출력
@@ -401,7 +405,7 @@
             </div>
           </div><!-- End Recent Activity -->
 
-          <!-- Website Traffic -->
+          <!-- Website Traffi
           <div class="card">
             <div class="filter">
               <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>

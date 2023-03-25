@@ -38,7 +38,7 @@
 </head>
 
 <body>
-
+	<script type="text/javascript" src="https://fastly.jsdelivr.net/npm/echarts@5.4.1/dist/echarts.min.js"></script>
   <!-- ======= Header ======= -->
   <header id="header" class="header fixed-top d-flex align-items-center">
 
@@ -467,113 +467,297 @@
                 <div class="card-body">
                   <h5 class="card-title">Chart</h5>
 
-                  <!-- doughnut Chart -->
+                  <!-- echart Chart -->
 
-						<canvas id="myChart"></canvas>
+			<div id="container" style="height: 400%; width:100%"></div>
 
+				  <script type="text/javascript" src="https://fastly.jsdelivr.net/npm/echarts@5.4.1/dist/echarts.min.js"></script>
+  <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+                  <script type="text/javascript">
+	
+		var dom = document.getElementById('container');
+		var myChart = echarts.init(dom, null, {
+			renderer: 'canvas',
+			useDirtyRect: false
+		});
+		myChart.on('click', function(params){
 
-                  <script>
-        // 그래프를 그리는 함수
-		//var chart;
-        function drawChart() {
-            // 데이터를 가져올 URL
-            var url = 'get_data.php';
-
-            // AJAX를 이용하여 데이터 가져오기
-            var request = new XMLHttpRequest();
-            request.open('GET', url, true);
-
-            request.onload = function() {
-                if (request.status >= 200 && request.status < 400) {
-                    // JSON 데이터 파싱
-                    var data = JSON.parse(request.responseText);
-
-                    // Chart.js를 이용하여 그래프 그리기
-                    var ctx = document.getElementById('myChart').getContext('2d');
-                    var chart = new Chart(ctx, {
-                        type: 'doughnut',
-                        data: {
-                            datasets: [{
-                                data: [0, 0],
-                                backgroundColor: [
-                                    'rgb(255, 99, 132)',
-                                    'rgb(54, 162, 235)'
-                                ]
-                            }],
-                            labels: [
-                                
-                                '복제 의심 탐지',
-								'정상 사용'
-                            ]
-                        },
-                        options: {
-                            responsive: true,
-                            
-							onClick: function(evt){
-								
-								var activePoints=chart.getElementsAtEventForMode(evt, 'nearest', {intersect:true}, true);
-								
-								if(activePoints.length>0){
-									//alert(activePoints);
-									var clickedIndex = activePoints[0].index;//클릭한 영역의 라벨을 가져와야 함
-									var label = chart.data.labels[clickedIndex];
-									if (label == '복제 의심 탐지'){
-										value = 1;
-										}
-									else{
-										value=0;
-									}
-									//var value = chart.data.datasets[0].data[clickedIndex];//클릭한 인텍스의 전체 크기를 가져오는 기능
-									window.open('table.html?value=' + value);
-								}
-								else{
-									alert('failed');
-								}
-								
-								
-
-                        }
-						
-						}
-                    });
-
-                    // 데이터를 그래프에 추가
-                    for (var i = 0; i < data.length; i++) {
-					
-                        if (data[i].Cheack_Status == '0') {
-                            chart.data.datasets[0].data[1] += 1;
-							
-                        } else {
-                            chart.data.datasets[0].data[0] += 1;
-                        }
-                    }
-
-                    // 그래프 업데이트
-                    chart.update();
-					
-                }
-            };
-
-            request.send();
-        }
-
-        // 페이지 로드시 그래프 그리기
-        drawChart();
-/*
-		document.getElementById("mychart").onclick = function(evt){
-		var actionPoints = mychart.getElementAtEvent(evt);
-		
-			if(actionPoints.length>0){
-				alert(actionPoints[0]["_index"]);
+			if(params['seriesType'] == 'line'){
+				window.location.href="./table.html?time=" + params['name'];
 			}
-		}
-	*/	
-		// 60초마다 그래프 새로고침
-        setTimeout(function() {
-            //drawChart();
-			location.reload();
-        }, 60000);
-    </script>
+			else{
+				alert("막대는 미출력 됩니다.");
+			}
+		})
+		var app = {};
+    
+		var option;
+		
+		let bar_data=0;
+		let line_data=0;
+		
+		//////////////////////////////////////////////////////////////////
+		
+		////그래프 초기 필수 영역////
+		
+		//x축 하단 데이터 생성 및 반환 함수
+		const categories = (function () {
+			let now = new Date();
+			let res = [];
+			let len = 5;
+
+			while (len--) {
+				//res.unshift(now.toLocaleTimeString().replace(/^\D*/, ''));
+				const formattedDate = now.getFullYear() + '-' + (now.getMonth()+1).toString().padStart(2,'0') + 
+				'-' + now.getDate().toString().padStart(2,'0') + ' ' + now.getHours().toString().padStart(2,'0') + 
+				':' + now.getMinutes().toString().padStart(2,'0') + ':' + now.getSeconds().toString().padStart(2,'0');
+				res.unshift(formattedDate);
+				now = new Date(+now - 60000);
+			}
+			return res;
+		})();
+		
+		//x축 상단 숫자 생성 및 반환 함수
+		const categories2 = (function () {
+			let res = [];
+			let len = 5;
+			while (len--) {
+				res.push(5 - len - 1);
+			}
+			return res;
+		})();
+	
+		
+		//처음 페이지 열릴때, 기본 출력 막대그래프 데이터를 랜덤으로 생성하는 코드
+		
+		//지금 초기 데이터를 가져올때, 0들을 인식을 못하는 것 같은(다른 숫자도 인식을 못하는지는 확인해 봐야함
+		const data = (function () {
+			let res = [];
+			let len = 0;
+			
+			// php를 통해서 데이터를 가져오는 AJAX함수
+			while (len<5) {
+				//console.log(categories);
+				$.ajax({
+					url: "./get_bar_data.php",
+					type:"post",
+					dataType:"json",
+					data: {
+						time_val:categories[len]
+						
+					}
+					
+					}).done(function(response1){
+						res.push(parseInt(response1['COUNT(*)']));
+						//res.push(Math.round(Math.random() * 1000));
+
+					}).fail(function(xhr){
+						console.log(xhr.status);
+					});
+				len++;
+			}
+			return res;
+		})();
+
+		//처음 페이지 열릴때, 기본 출력 꺽은선 그래프 데이터를 랜덤으로 생성하는 코드.
+		const data2 = (function () {
+			let res = [];
+			let len = 0;
+			while (len < 5) {
+
+				$.ajax({
+					url: "./get_line_data.php",
+					type:"post",
+					dataType:"json",
+					data: {
+						time_val:categories[len]
+					}
+					
+					}).done(function(response2){
+
+						res.push(+parseInt(response2['COUNT(*)'])); // php파일에서 데이터 갯수를 못가져 오는지, 0이 출력됨
+						//res.push(+(Math.random() * 10 + 5).toFixed(1));
+
+					}).fail(function(xhr){
+						console.log("error");
+					});
+				len++;
+			}
+
+			return res;
+		})();
+
+		////그래프 초기 필수영역 끝////
+		
+		//////////////////////////////////////////////////////////////////
+		//그래프 옵션 단계, 아마 여기에 핸들러를 설정해서 클릭옵션이 적용 가능할 예정
+		//그래프 이름과, 형태등을 설정하는 부분
+		option = {
+			title: {
+				text: '복제의심 탐지'
+			},
+			tooltip: {
+				trigger: 'axis',
+				axisPointer: {
+					type: 'cross',
+					label: {
+						backgroundColor: '#283b56'
+					}
+				}
+			},
+			legend: {},
+			toolbox: {
+				show: true,
+				feature: {
+					dataView: { readOnly: false },
+					restore: {},
+					saveAsImage: {}
+				}
+			},
+			dataZoom: {
+				show: false,
+				start: 0,
+				end: 100
+			},
+			xAxis: [
+				{
+					type: 'category',
+					boundaryGap: true,
+					data: categories
+				},
+				{
+					type: 'category',
+					boundaryGap: true,
+					data: categories2
+				}
+				],
+			yAxis: [
+				{
+					type: 'value',
+					scale: true,
+					name: '복제 탐지 수',
+					max: 30,
+					min: 0,
+					boundaryGap: [1.0, 1.0]
+				},
+				{
+					type: 'value',
+					scale: true,
+					name: '전체 서비스 수',
+					max: 30,
+					min: 0,
+					boundaryGap: [1.0, 1.0]
+				}
+			],
+			series: [
+				{
+					name: '전체 서비스 사용수',
+					type: 'bar',
+					xAxisIndex: 1,
+					yAxisIndex: 1,
+					data: data
+				},
+				{
+					name: '복제 탐지 수',
+					type: 'line',
+					data: data2
+				}
+			]
+		};
+		
+		//////////////////////////////////////////////////////////////////
+		app.count = 5;
+		
+		//일정 시간이 지날때 마다 새로운 값을 생성해 그래프로 출력하는 부분
+		setInterval(function () {
+			
+			// 시간을 가져오는 함수
+			//let axisData = new Date().toLocaleTimeString().replace(/^\D*/, '');
+			let now = new Date();
+			let axisData = now.getFullYear() + '-' + (now.getMonth()+1).toString().padStart(2,'0') + 
+				'-' + now.getDate().toString().padStart(2,'0') + ' ' + now.getHours().toString().padStart(2,'0') + 
+				':' + now.getMinutes().toString().padStart(2,'0') + ':' + now.getSeconds().toString().padStart(2,'0');
+			
+			$.ajax({
+					url: "./get_bar_data.php",
+					type:"post",
+					dataType:"json",
+					data: {
+						time_val:axisData
+					}
+					
+					}).done(function(response1){
+						bar_data = parseInt(response1['COUNT(*)']);
+					}).fail(function(xhr){
+						console.log(xhr.status);
+					}); 
+					
+			$.ajax({
+					url: "./get_line_data.php",
+					type:"post",
+					dataType:"json",
+					data: {
+						time_val:axisData
+					}
+	
+					}).done(function(response2){
+						line_data = parseInt(response2['COUNT(*)']);
+					}).fail(function(xhr){
+						console.log(xhr.status);
+					});
+			
+			setTimeout(function(){
+			//막대그래프를 그리는 부분
+			data.shift();
+			data.push(bar_data);//여기를 어떻게 바꾸면 php를 통해서 db의 데이터들을 가져 올 수 있음
+  
+			//꺽은선 그래프를 그리는 부분
+			data2.shift();
+			data2.push(line_data);//여기를 어떻게 바꾸면 php를 통해서 db의 데이터들을 가져 올 수 있음
+  
+			//밑 x축의 시간을 출력하는 부분, 위의 변수에서 시간을 가져와 새로운 시간을 만든다.
+			categories.shift();
+			categories.push(axisData);
+  
+			//위 x축의 숫자를 출력하는 부분
+			categories2.shift();
+			categories2.push(app.count++);
+			
+			//x축과 y축의 변수를 지정해서 새롭게 추가되는 데이터를 그래프에 적용시키는 부분
+
+			myChart.setOption({
+				xAxis: [
+					{
+						data: categories
+					},
+					{
+						data: categories2
+					}
+				],
+				series: [
+					{
+						data: data
+					},
+					{
+						data: data2
+					}
+				]
+			});
+			}, 1000); //1초
+		}, 60000); //60000 = 1분마다 새로고침
+
+		//////////////////////////////////////////////////////////////////
+		
+		
+		//wait sleep(3000);
+		setTimeout(function(){
+			if (option && typeof option === 'object') {
+				myChart.setOption(option);
+			}
+		}, 1000);
+
+		window.addEventListener('resize', myChart.resize);
+  </script>
                   <!-- End Line Chart -->
 
                 </div>
@@ -676,7 +860,7 @@
                 <li><a class="dropdown-item" href="#">This Year</a></li>
               </ul>
             </div>
-
+			<!--
             <div class="card-body pb-0">
               <h5 class="card-title">Website Traffic <span>| Today</span></h5>
 
@@ -738,8 +922,8 @@
               </script>
 
             </div>
-          </div><!-- End Website Traffic -->
-
+          </div><!-- End Website Traffic
+		-->
         </div><!-- End Right side columns -->
 
       </div>
