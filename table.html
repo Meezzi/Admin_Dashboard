@@ -343,6 +343,7 @@
 						<tr>
 							<th scope="col">TimeStamp</th>
 							<th scope="col">UID</th>
+							<th scope="col">UserId</th>
 							<th scope="col">Check_Status</th>
 						</tr>
 					</thead>
@@ -369,12 +370,13 @@
 							while ($row = mysqli_fetch_assoc($result)) {
 								if($row["Check_Status"] == '1'){
 									$row["Check_Status"] = '복제 의심 탐지';
-									echo "<tr><td>" . $row["Time_Stamp"] . "</td><td>" . $row["UID"] . "</td><td><span class='badge bg-danger'>" . $row["Check_Status"] . "</span></td></tr>";
+									echo "<tr><td>" . $row["Time_Stamp"] . "</td><td>" . $row["UID"] . "</td><td>" . $row["UserId"] . "</td><td><span class='badge bg-danger'>" . $row["Check_Status"] . "</span></td></tr>";
 								}
+								/*
 								elseif($row["Check_Status"] == '0'){
 									$row["Check_Status"] = '정상 탐지';
 									echo "<tr><td>" . $row["Time_Stamp"] . "</td><td>" . $row["UID"] . "</td><td><span class='badge bg-success'>" . $row["Check_Status"] . "</span></td></tr>";
-								}
+								}*/
 								else{
 									echo "시스템 오류";
 								}
