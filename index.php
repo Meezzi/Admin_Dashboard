@@ -25,7 +25,7 @@ $result = $conn->query($sql);
 if ($result->num_rows > 0) {
     session_start();
     $_SESSION['username'] = $username;
-    session_set_cookie_params(600);
+    session_set_cookie_params(60);
     header("Location: main.html");
 } else {
     echo "Invalid username or password";
