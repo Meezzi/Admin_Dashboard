@@ -1,4 +1,8 @@
 <?php
+  include 'inc_head.php';
+?>
+
+<?php
 // MySQL 서버 연결 정보
 $servername = "localhost";
 $username = "root";
@@ -21,12 +25,17 @@ $password = $_POST['password'];
 $sql = "SELECT username, password FROM admin WHERE username = '$username' AND password = '$password'";
 $result = $conn->query($sql);
 
+  
+
 // 사용자 정보가 있으면 로그인 성공 처리
 if ($result->num_rows > 0) {
-    session_start();
-    $_SESSION['username'] = $username;
-    session_set_cookie_params(60);
-    header("Location: main.html");
+    $_SESSION['username'] = $_POST['username'];
+
+    if($ss_login) {
+        header("Location: main.php");
+    } else {
+        header("Location: index.html");
+    }    
 } else {
     echo "Invalid username or password";
 }
