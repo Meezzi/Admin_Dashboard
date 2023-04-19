@@ -21,25 +21,29 @@ if ($conn->connect_error) {
 $username = $_POST['username'];
 $password = $_POST['password'];
 
+$hashed_password = password_hash($password, PASSWORD_DEFAULT);
+
 // 사용자 정보 확인 쿼리
-$sql = "SELECT username, password FROM admin WHERE username = '$username' AND password = '$password'";
+$sql = "SELECT username, password FROM admin WHERE username = '$username'";
 $result = $conn->query($sql);
 
-  
-
-// 사용자 정보가 있으면 로그인 성공 처리
 if ($result->num_rows > 0) {
-    $_SESSION['username'] = $_POST['username'];
+    $row = $result->fetch_assoc();
+    $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
-    if($ss_login) {
-        header("Location: main.php");
+    if (password_verify($password, $hashed_password)) {
+        $_SESSION['username'] = $_POST['username'];
+
+        if($ss_login) {
+            header("Location: main.php");
+        } else {
+            header("Location: index.html");
+        }
     } else {
-        header("Location: index.html");
-    }    
+        $message = "비밀번호가 잘못되었습니다.";
+        echo "<script>alert('$hashed_password');history.go(-1);</script>";
+    }
 } else {
-    echo "Invalid username or password";
+    $message = "존재하지 않는 사용자입니다.";
+    echo "<script>alert('$message');history.go(-1);</script>";
 }
-
-// MySQL 연결 종료
-$conn->close();
-?>
