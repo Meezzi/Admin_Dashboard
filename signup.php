@@ -44,7 +44,8 @@ $sql = "INSERT INTO admin (username, email, password) VALUES ('$username', '$ema
 $result = $conn->query($sql);
 
 // 회원가입 완료 페이지 출력
-echo "회원가입이 완료되었습니다.";
+$message = "회원가입이 완료되었습니다.";
+echo "<script>alert('$message');history.go(-1);</script>";
 
 // MySQL 연결 종료
 $conn->close();

@@ -41,7 +41,7 @@ if ($result->num_rows > 0) {
         }
     } else {
         $message = "비밀번호가 잘못되었습니다.";
-        echo "<script>alert('$hashed_password');history.go(-1);</script>";
+        echo "<script>alert('$message');history.go(-1);</script>";
     }
 } else {
     $message = "존재하지 않는 사용자입니다.";
