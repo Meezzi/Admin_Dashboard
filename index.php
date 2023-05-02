@@ -18,8 +18,8 @@ if ($conn->connect_error) {
 }
 
 // POST로 받은 로그인 정보 가져오기
-$username = $_POST['username'];
-$password = $_POST['password'];
+$username = mysqli_real_escape_string($conn, $_POST['username']);
+$password = mysqli_real_escape_string($conn, $_POST['password']);
 
 $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
@@ -29,7 +29,6 @@ $result = $conn->query($sql);
 
 if ($result->num_rows > 0) {
     $row = $result->fetch_assoc();
-    $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
     if (password_verify($password, $hashed_password)) {
         $_SESSION['username'] = $_POST['username'];
